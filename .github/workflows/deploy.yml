@@ -1,0 +1,32 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'client/**'
+      - 'k8s/**'
+      - '.github/workflows/**'
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build client image
+        run: docker build -t dbct-game-client:${{ github.sha }} ./client
+
+      - name: Import image into k3s containerd
+        run: docker save dbct-game-client:${{ github.sha }} | sudo k3s ctr images import -
+
+      - name: Apply k8s manifests
+        run: kubectl apply -f k8s/
+
+      - name: Update deployment image (trigger rollout)
+        run: kubectl -n games set image deployment/dbct-game dbct-game=dbct-game-client:${{ github.sha }}
+
+      - name: Wait for rollout
+        run: kubectl -n games rollout status deployment/dbct-game --timeout=120s
