@@ -1,0 +1,19 @@
+services:
+  client:
+    build:
+      context: ./client
+    image: dbct-game-client:latest
+    container_name: dbct-game-client
+    ports:
+      - "8080:80"
+    restart: unless-stopped
+
+  # Sẽ bật khi có server Socket.io cho chế độ coop realtime:
+  # server:
+  #   build:
+  #     context: ./server
+  #   image: dbct-game-server:latest
+  #   container_name: dbct-game-server
+  #   ports:
+  #     - "3000:3000"
+  #   restart: unless-stopped

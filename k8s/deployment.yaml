@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dbct-game
+  namespace: games
+  labels:
+    app: dbct-game
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dbct-game
+  template:
+    metadata:
+      labels:
+        app: dbct-game
+    spec:
+      containers:
+        - name: dbct-game
+          # build từ ./client: docker build -t dbct-game-client:latest ./client
+          image: dbct-game-client:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10

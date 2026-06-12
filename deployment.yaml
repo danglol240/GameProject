@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dbct-game
+  namespace: games
+  labels:
+    app: dbct-game
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dbct-game
+  template:
+    metadata:
+      labels:
+        app: dbct-game
+    spec:
+      containers:
+        - name: dbct-game
+          # build từ ./client: docker build -t dbct-game-client:latest ./client
+          image: dbct-game-client:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dbct-game
+  namespace: games
+spec:
+  selector:
+    app: dbct-game
+  ports:
+    - port: 80
+      targetPort: 80
+  # NodePort: truy cập qua <NodeIP>:<nodePort> — dùng khi không có LoadBalancer (local k8s, bare metal)
+  # LoadBalancer: cloud tự cấp IP public — dùng khi deploy lên GKE/EKS/AKS
+  # ClusterIP: chỉ dùng nội bộ trong cluster — dùng khi có Ingress controller
+  type: NodePort

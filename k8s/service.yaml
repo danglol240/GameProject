@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dbct-game
+  namespace: games
+spec:
+  selector:
+    app: dbct-game
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
