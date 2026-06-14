@@ -1,4 +1,3 @@
-// ---------- helper Three.js ----------
 var THREE = window.THREE;
 
 export function mat(c, opts) {

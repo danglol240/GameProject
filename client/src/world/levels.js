@@ -1,4 +1,3 @@
-// ---------- dữ liệu màn chơi ----------
 export const LEVELS = [
     {
       name: "Khởi Động",

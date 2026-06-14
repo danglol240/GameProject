@@ -1,4 +1,3 @@
-// ---------- HUD ----------
 export const HUD_HTML = '' +
     '<style>' +
     '.cg-hud{position:absolute;inset:0;pointer-events:none;font-family:"Be Vietnam Pro",system-ui,sans-serif;color:#fff;user-select:none;}' +
