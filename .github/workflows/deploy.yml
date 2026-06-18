@@ -1,35 +1,65 @@
 name: Build and Deploy
- 
+
 on:
   push:
     branches: [main]
     paths:
       - 'client/**'
+      - 'portal/**'
+      - 'pokemon/**'
       - 'k8s/**'
       - '.github/workflows/**'
- 
+
 jobs:
   deploy:
     runs-on: self-hosted
     env:
       KUBECONFIG: /home/danglol240/.kube/config
- 
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
- 
-      - name: Build client image
+
+      # ── Build images ──────────────────────────────────────────────
+      - name: Build platformer image
         run: docker build -t dbct-game-client:${{ github.sha }} ./client
- 
-      - name: Import image into k3s containerd
+
+      - name: Build portal image
+        run: docker build -t game-portal:${{ github.sha }} ./portal
+
+      - name: Build pokemon image
+        run: docker build -t pokemon-game:${{ github.sha }} ./pokemon
+
+      # ── Import into k3s containerd ────────────────────────────────
+      - name: Import platformer into k3s
         run: docker save dbct-game-client:${{ github.sha }} | sudo /usr/local/bin/k3s ctr images import -
- 
+
+      - name: Import portal into k3s
+        run: docker save game-portal:${{ github.sha }} | sudo /usr/local/bin/k3s ctr images import -
+
+      - name: Import pokemon into k3s
+        run: docker save pokemon-game:${{ github.sha }} | sudo /usr/local/bin/k3s ctr images import -
+
+      # ── Apply k8s manifests ───────────────────────────────────────
       - name: Apply k8s manifests
         run: kubectl apply -f k8s/
- 
-      - name: Update deployment image (trigger rollout)
+
+      # ── Trigger rollouts with new image tags ──────────────────────
+      - name: Update platformer image
         run: kubectl -n games set image deployment/dbct-game dbct-game=dbct-game-client:${{ github.sha }}
- 
-      - name: Wait for rollout
+
+      - name: Update portal image
+        run: kubectl -n games set image deployment/game-portal game-portal=game-portal:${{ github.sha }}
+
+      - name: Update pokemon image
+        run: kubectl -n games set image deployment/pokemon-game pokemon-game=pokemon-game:${{ github.sha }}
+
+      # ── Wait for all rollouts ─────────────────────────────────────
+      - name: Wait for platformer rollout
         run: kubectl -n games rollout status deployment/dbct-game --timeout=120s
- 
+
+      - name: Wait for portal rollout
+        run: kubectl -n games rollout status deployment/game-portal --timeout=120s
+
+      - name: Wait for pokemon rollout
+        run: kubectl -n games rollout status deployment/pokemon-game --timeout=120s

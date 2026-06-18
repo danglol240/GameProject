@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pokemon-game
+  namespace: games
+spec:
+  selector:
+    app: pokemon-game
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

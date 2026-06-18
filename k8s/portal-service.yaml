@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: game-portal
+  namespace: games
+spec:
+  selector:
+    app: game-portal
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

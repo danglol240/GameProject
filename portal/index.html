@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Game Studio</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0c1a;
+    --blue: #4da8ff;
+    --orange: #ff7a4d;
+    --yellow: #ffd166;
+    --card-bg: rgba(255,255,255,0.04);
+    --card-border: rgba(255,255,255,0.09);
+    --text: #e8eaf6;
+    --muted: #8892aa;
+  }
+
+  html, body {
+    width: 100%; height: 100%; overflow-x: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+
+  /* ── STARFIELD ── */
+  #stars {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  }
+
+  /* ── LAYOUT ── */
+  .page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
+
+  /* ── HEADER ── */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.4rem 3rem;
+    border-bottom: 1px solid var(--card-border);
+    backdrop-filter: blur(10px);
+    background: rgba(10,12,26,0.6);
+    position: sticky; top: 0; z-index: 10;
+  }
+
+  .logo {
+    font-size: 1.5rem; font-weight: 800; letter-spacing: 0.12em;
+    background: linear-gradient(90deg, var(--blue), var(--yellow));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-transform: uppercase;
+  }
+
+  nav { display: flex; gap: 2rem; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: 0.9rem;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transition: color 0.25s;
+  }
+  nav a:hover { color: var(--blue); }
+
+  /* ── HERO ── */
+  .hero {
+    text-align: center;
+    padding: 5rem 2rem 3.5rem;
+  }
+  .hero-eyebrow {
+    display: inline-block; font-size: 0.75rem; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--blue);
+    border: 1px solid rgba(77,168,255,0.35); border-radius: 99px;
+    padding: 0.3rem 1rem; margin-bottom: 1.4rem;
+  }
+  .hero h1 {
+    font-size: clamp(2.4rem, 6vw, 4rem); font-weight: 900;
+    line-height: 1.1; letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 40%, var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    margin-top: 1rem; max-width: 480px; margin-inline: auto;
+    color: var(--muted); font-size: 1.05rem; line-height: 1.7;
+  }
+
+  /* ── GRID ── */
+  .games-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    padding: 1rem 3rem 5rem;
+    max-width: 900px;
+    margin-inline: auto;
+    width: 100%;
+  }
+
+  /* ── CARD ── */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    backdrop-filter: blur(12px);
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    position: relative;
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+  }
+  .card.blue:hover  { border-color: rgba(77,168,255,0.5); box-shadow: 0 24px 60px rgba(77,168,255,0.15); }
+  .card.orange:hover { border-color: rgba(255,122,77,0.5); box-shadow: 0 24px 60px rgba(255,122,77,0.15); }
+
+  /* ── CARD PREVIEW ── */
+  .card-preview {
+    width: 100%; height: 200px;
+    position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* Platformer preview: side-scroller aesthetic */
+  .preview-platformer {
+    background: linear-gradient(180deg, #1a0a2e 0%, #0d1b4b 55%, #1e3a1e 100%);
+  }
+  .preview-platformer .plat-bg-moon {
+    position: absolute; width: 60px; height: 60px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fffbe0, #d4c870);
+    top: 18px; right: 40px;
+    box-shadow: 0 0 30px rgba(220,200,80,0.5);
+    animation: moonFloat 4s ease-in-out infinite;
+  }
+  @keyframes moonFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+
+  .preview-platformer .plat-ground {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 32px;
+    background: #2d5a27;
+    border-top: 3px solid #4caf50;
+  }
+  .preview-platformer .plat-platform {
+    position: absolute; height: 12px; border-radius: 4px;
+    background: #4a7c3f; border-top: 2px solid #6dbf67;
+  }
+  .preview-platformer .plat-player {
+    position: absolute; width: 24px; height: 32px;
+    background: #ff7a4d; border-radius: 4px 4px 0 0;
+    bottom: 32px;
+    animation: playerJump 1.8s ease-in-out infinite;
+  }
+  .preview-platformer .plat-player::before {
+    content: ''; position: absolute; top: -14px; left: 4px;
+    width: 16px; height: 14px; border-radius: 50%;
+    background: #ffcc99;
+  }
+  @keyframes playerJump { 0%,100%{transform:translateY(0)} 35%{transform:translateY(-40px)} 65%{transform:translateY(-40px)} }
+  .preview-platformer .plat-stars span {
+    position: absolute; width: 3px; height: 3px; background: #fff;
+    border-radius: 50%; animation: twinkle 2s ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* Pokemon preview */
+  .preview-pokemon {
+    background: linear-gradient(180deg, #0d2040 0%, #1a3a6e 60%, #2d5a27 100%);
+  }
+  .preview-pokemon .poke-grass {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 40px;
+    background: linear-gradient(180deg, #3d7a30, #2d5a27);
+    border-top: 3px solid #4caf50;
+  }
+  .preview-pokemon .poke-ball {
+    position: absolute; width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(180deg, #e53935 50%, #fff 50%);
+    border: 3px solid #111;
+    animation: pokeFloat 2.5s ease-in-out infinite;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+  }
+  .preview-pokemon .poke-ball::before {
+    content: ''; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%);
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #fff; border: 2px solid #111; z-index: 1;
+  }
+  .preview-pokemon .poke-ball::after {
+    content: ''; position: absolute; top: calc(50% - 1.5px); left: 0; right: 0;
+    height: 3px; background: #111;
+  }
+  @keyframes pokeFloat {
+    0%,100%{transform:translateY(0) rotate(-5deg)}
+    50%{transform:translateY(-14px) rotate(5deg)}
+  }
+  .preview-pokemon .poke-mon {
+    position: absolute; width: 52px; height: 52px; border-radius: 50%;
+    bottom: 40px; right: 50px;
+    animation: monBob 1.6s ease-in-out infinite;
+  }
+  @keyframes monBob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+  .preview-pokemon .poke-star {
+    position: absolute; border-radius: 50%;
+    animation: sparkle 1.5s ease-in-out infinite;
+    background: var(--yellow);
+  }
+  @keyframes sparkle { 0%,100%{transform:scale(1);opacity:0.8} 50%{transform:scale(1.6);opacity:0.3} }
+
+  /* ── CARD BODY ── */
+  .card-body { padding: 1.4rem 1.6rem 1.8rem; display: flex; flex-direction: column; flex: 1; }
+
+  .genre-tag {
+    display: inline-block; font-size: 0.65rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    padding: 0.25rem 0.7rem; border-radius: 99px; margin-bottom: 0.8rem;
+  }
+  .genre-tag.blue   { background: rgba(77,168,255,0.15); color: var(--blue); border: 1px solid rgba(77,168,255,0.3); }
+  .genre-tag.orange { background: rgba(255,122,77,0.15); color: var(--orange); border: 1px solid rgba(255,122,77,0.3); }
+
+  .card-body h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 0.55rem; }
+  .card-body p  { color: var(--muted); font-size: 0.88rem; line-height: 1.65; flex: 1; }
+
+  .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 1.4rem; }
+
+  .players-badge {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-size: 0.75rem; color: var(--muted);
+  }
+  .players-badge .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  .btn-play {
+    display: inline-block; text-decoration: none;
+    padding: 0.6rem 1.4rem; border-radius: 10px;
+    font-size: 0.8rem; font-weight: 700; letter-spacing: 0.08em;
+    text-transform: uppercase; transition: all 0.25s; border: none; cursor: pointer;
+  }
+  .btn-play.blue {
+    background: linear-gradient(135deg, #2d8edf, #4da8ff);
+    color: #fff; box-shadow: 0 4px 16px rgba(77,168,255,0.35);
+  }
+  .btn-play.blue:hover { box-shadow: 0 6px 24px rgba(77,168,255,0.55); transform: scale(1.04); }
+  .btn-play.orange {
+    background: linear-gradient(135deg, #d85f2e, #ff7a4d);
+    color: #fff; box-shadow: 0 4px 16px rgba(255,122,77,0.35);
+  }
+  .btn-play.orange:hover { box-shadow: 0 6px 24px rgba(255,122,77,0.55); transform: scale(1.04); }
+
+  /* ── FOOTER ── */
+  footer {
+    margin-top: auto;
+    padding: 2rem 3rem;
+    border-top: 1px solid var(--card-border);
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+    gap: 1rem; color: var(--muted); font-size: 0.8rem;
+  }
+  .tech-stack { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+  .tech-badge {
+    padding: 0.3rem 0.75rem; border-radius: 6px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--card-border);
+    font-size: 0.7rem; font-weight: 600; letter-spacing: 0.06em;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+<canvas id="stars"></canvas>
+
+<div class="page">
+  <header>
+    <span class="logo">Game Studio</span>
+    <nav>
+      <a href="#">Games</a>
+      <a href="#">About</a>
+      <a href="https://github.com/danglol240" target="_blank" rel="noopener">GitHub</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-eyebrow">Indie Game Collection</div>
+    <h1>Chào mừng tới<br/>Game Studio</h1>
+    <p>Bộ sưu tập game độc lập xây dựng bằng Three.js &amp; Vite. Chọn game bên dưới và bắt đầu cuộc phiêu lưu!</p>
+  </section>
+
+  <div class="games-grid">
+
+    <!-- Card 1: Platformer -->
+    <div class="card blue">
+      <div class="card-preview preview-platformer">
+        <div class="plat-bg-moon"></div>
+        <!-- stars -->
+        <div class="plat-stars">
+          <span style="top:12%;left:10%;animation-delay:0s"></span>
+          <span style="top:25%;left:30%;animation-delay:0.4s"></span>
+          <span style="top:8%;left:55%;animation-delay:0.9s"></span>
+          <span style="top:18%;left:72%;animation-delay:0.2s"></span>
+          <span style="top:35%;left:85%;animation-delay:0.7s"></span>
+          <span style="top:40%;left:20%;animation-delay:1.1s"></span>
+          <span style="top:15%;left:45%;animation-delay:0.3s"></span>
+        </div>
+        <!-- platforms -->
+        <div class="plat-platform" style="width:70px;bottom:60px;left:20px;"></div>
+        <div class="plat-platform" style="width:55px;bottom:90px;left:110px;"></div>
+        <div class="plat-platform" style="width:65px;bottom:70px;right:30px;"></div>
+        <!-- player -->
+        <div class="plat-player" style="left:28px;"></div>
+        <div class="plat-ground"></div>
+      </div>
+      <div class="card-body">
+        <span class="genre-tag blue">Co-op Platformer</span>
+        <h2>Đôi Bạn Cùng Tiến</h2>
+        <p>Hai người chơi hợp tác vượt qua những màn chướng ngại vật đầy thử thách. Nhảy, chạy và phối hợp để chinh phục từng cấp độ!</p>
+        <div class="card-footer">
+          <div class="players-badge">
+            <div class="dot" style="background:#4da8ff"></div>
+            1–2 Người chơi
+          </div>
+          <a href="/platformer/" class="btn-play blue">CHƠI NGAY</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Pokemon -->
+    <div class="card orange">
+      <div class="card-preview preview-pokemon">
+        <!-- stars -->
+        <div class="poke-star" style="width:4px;height:4px;top:15%;left:15%;animation-delay:0s"></div>
+        <div class="poke-star" style="width:3px;height:3px;top:30%;left:35%;animation-delay:0.5s"></div>
+        <div class="poke-star" style="width:5px;height:5px;top:10%;left:60%;animation-delay:1s"></div>
+        <div class="poke-star" style="width:3px;height:3px;top:22%;left:80%;animation-delay:0.3s"></div>
+        <div class="poke-star" style="width:4px;height:4px;top:40%;left:8%;animation-delay:0.8s"></div>
+        <!-- pokemon sprite -->
+        <div class="poke-mon" style="background:radial-gradient(circle at 35% 35%,#9bc,#7897b8);box-shadow:0 4px 20px rgba(0,0,0,0.5);"></div>
+        <!-- trainer sprite -->
+        <div style="position:absolute;bottom:40px;left:40px;width:36px;height:50px;">
+          <div style="position:absolute;top:0;left:6px;width:24px;height:20px;background:#ffcc99;border-radius:50%;"></div>
+          <div style="position:absolute;top:0;left:4px;width:28px;height:10px;background:#cc2222;border-radius:4px 4px 0 0;"></div>
+          <div style="position:absolute;top:18px;left:6px;width:24px;height:20px;background:#1565c0;border-radius:3px;"></div>
+          <div style="position:absolute;top:36px;left:5px;width:10px;height:14px;background:#1a237e;border-radius:2px;"></div>
+          <div style="position:absolute;top:36px;left:19px;width:10px;height:14px;background:#1a237e;border-radius:2px;"></div>
+        </div>
+        <!-- pokeball -->
+        <div class="poke-ball" style="left:44%;top:30%;"></div>
+        <div class="poke-grass"></div>
+      </div>
+      <div class="card-body">
+        <span class="genre-tag orange">3D RPG Adventure</span>
+        <h2>Pokémon World</h2>
+        <p>Khám phá thế giới 3D, bắt Pokémon hoang dã, chiến đấu turn-based và xây dựng Pokédex của riêng bạn. Cuộc phiêu lưu đích thực!</p>
+        <div class="card-footer">
+          <div class="players-badge">
+            <div class="dot" style="background:#ff7a4d"></div>
+            1 Người chơi
+          </div>
+          <a href="/pokemon/" class="btn-play orange">CHƠI NGAY</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <span>&copy; 2025 Game Studio &mdash; danglol240</span>
+    <div class="tech-stack">
+      <span class="tech-badge">Three.js</span>
+      <span class="tech-badge">Vite</span>
+      <span class="tech-badge">Docker</span>
+      <span class="tech-badge">Kubernetes</span>
+      <span class="tech-badge">nginx</span>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function () {
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+
+  let W, H, stars = [];
+
+  function resize() {
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function initStars(n) {
+    stars = [];
+    for (let i = 0; i < n; i++) {
+      stars.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.4 + 0.3,
+        speed: Math.random() * 0.25 + 0.05,
+        alpha: Math.random(),
+        dalpha: (Math.random() * 0.6 + 0.2) * (Math.random() < 0.5 ? 1 : -1)
+      });
+    }
+  }
+
+  function tick() {
+    ctx.clearRect(0, 0, W, H);
+    for (const s of stars) {
+      s.alpha += s.dalpha * 0.008;
+      if (s.alpha > 1)  { s.alpha = 1;  s.dalpha = -Math.abs(s.dalpha); }
+      if (s.alpha < 0)  { s.alpha = 0;  s.dalpha =  Math.abs(s.dalpha); }
+      s.y -= s.speed * 0.15;
+      if (s.y < -2) { s.y = H + 2; s.x = Math.random() * W; }
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,255,255,${s.alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  window.addEventListener('resize', () => { resize(); initStars(200); });
+  resize();
+  initStars(200);
+  tick();
+})();
+</script>
+</body>
+</html>

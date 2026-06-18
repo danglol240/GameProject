@@ -1,19 +1,31 @@
 services:
-  client:
+  gateway:
+    image: nginx:1.27-alpine
+    container_name: game-gateway
+    ports:
+      - "8080:80"
+    volumes:
+      - ./gateway/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on: [portal, platformer, pokemon]
+    restart: unless-stopped
+
+  portal:
+    build:
+      context: ./portal
+    image: game-portal:latest
+    container_name: game-portal
+    restart: unless-stopped
+
+  platformer:
     build:
       context: ./client
     image: dbct-game-client:latest
     container_name: dbct-game-client
-    ports:
-      - "8080:80"
     restart: unless-stopped
 
-  # Sẽ bật khi có server Socket.io cho chế độ coop realtime:
-  # server:
-  #   build:
-  #     context: ./server
-  #   image: dbct-game-server:latest
-  #   container_name: dbct-game-server
-  #   ports:
-  #     - "3000:3000"
-  #   restart: unless-stopped
+  pokemon:
+    build:
+      context: ./pokemon
+    image: pokemon-game:latest
+    container_name: pokemon-game
+    restart: unless-stopped

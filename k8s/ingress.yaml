@@ -1,18 +1,32 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: dbct-game
+  name: game-ingress
   namespace: games
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
-  ingressClassName: traefik
   rules:
-    - host: danglol240.id.vn
-      http:
+    - http:
         paths:
-          - path: /
-            pathType: Prefix
+          - path: /platformer(/|$)(.*)
+            pathType: ImplementationSpecific
             backend:
               service:
                 name: dbct-game
+                port:
+                  number: 80
+          - path: /pokemon(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: pokemon-game
+                port:
+                  number: 80
+          - path: /()(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: game-portal
                 port:
                   number: 80

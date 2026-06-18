@@ -1,0 +1,21 @@
+export const MOVES = {
+  'Vine Whip':    { power: 45,  type: 'Grass',    accuracy: 100, pp: 25 },
+  'Tackle':       { power: 40,  type: 'Normal',   accuracy: 100, pp: 35 },
+  'Growl':        { power: 0,   type: 'Normal',   accuracy: 100, pp: 40 },
+  'Leech Seed':   { power: 0,   type: 'Grass',    accuracy: 90,  pp: 10 },
+  'Ember':        { power: 40,  type: 'Fire',     accuracy: 100, pp: 25 },
+  'Scratch':      { power: 40,  type: 'Normal',   accuracy: 100, pp: 35 },
+  'Flamethrower': { power: 90,  type: 'Fire',     accuracy: 100, pp: 15 },
+  'Water Gun':    { power: 40,  type: 'Water',    accuracy: 100, pp: 25 },
+  'Bite':         { power: 60,  type: 'Dark',     accuracy: 100, pp: 25 },
+  'Bubble':       { power: 40,  type: 'Water',    accuracy: 100, pp: 30 },
+  'Thunderbolt':  { power: 90,  type: 'Electric', accuracy: 100, pp: 15 },
+  'Quick Attack': { power: 40,  type: 'Normal',   accuracy: 100, pp: 30 },
+  'Shadow Ball':  { power: 80,  type: 'Ghost',    accuracy: 100, pp: 15 },
+  'Lick':         { power: 30,  type: 'Ghost',    accuracy: 100, pp: 30 },
+  'Body Slam':    { power: 85,  type: 'Normal',   accuracy: 100, pp: 15 },
+  'Hyper Voice':  { power: 90,  type: 'Normal',   accuracy: 100, pp: 10 },
+  'Dragon Claw':  { power: 80,  type: 'Dragon',   accuracy: 100, pp: 15 },
+  'Psystrike':    { power: 100, type: 'Psychic',  accuracy: 100, pp: 10 },
+  'Aura Sphere':  { power: 80,  type: 'Fighting', accuracy: 100, pp: 20 }
+}
