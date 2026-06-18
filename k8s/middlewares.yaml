@@ -1,0 +1,19 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-platformer
+  namespace: games
+spec:
+  stripPrefix:
+    prefixes:
+      - /platformer
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-pokemon
+  namespace: games
+spec:
+  stripPrefix:
+    prefixes:
+      - /pokemon
