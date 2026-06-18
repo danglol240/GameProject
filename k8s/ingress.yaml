@@ -5,9 +5,12 @@ metadata:
   namespace: games
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
+    traefik.ingress.kubernetes.io/router.middlewares: games-strip-prefix@kubernetescrd
 spec:
+  ingressClassName: traefik
   rules:
-    - http:
+    - host: danglol240.id.vn
+      http:
         paths:
           - path: /platformer(/|$)(.*)
             pathType: ImplementationSpecific

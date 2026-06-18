@@ -48,6 +48,10 @@ jobs:
       - name: Import pokemon into k3s
         run: docker save pokemon-game:${{ github.sha }} | sudo /usr/local/bin/k3s ctr images import -
 
+      # ── Xóa ingress cũ bị conflict ───────────────────────────────
+      - name: Remove legacy dbct-game ingress
+        run: kubectl -n games delete ingress dbct-game --ignore-not-found=true
+
       # ── Apply k8s manifests ───────────────────────────────────────
       - name: Apply k8s manifests
         run: kubectl apply --validate=false -f k8s/
