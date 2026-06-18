@@ -20,6 +20,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # ── Ensure k3s TLS cert is valid ──────────────────────────────
+      - name: Rotate k3s cert if not yet valid
+        run: |
+          if ! kubectl cluster-info --request-timeout=5s > /dev/null 2>&1; then
+            echo "k3s API unreachable, rotating certificates..."
+            sudo k3s certificate rotate
+            sudo systemctl restart k3s
+            echo "Waiting for k3s API server to be ready..."
+            until kubectl cluster-info --request-timeout=5s > /dev/null 2>&1; do
+              sleep 5
+            done
+            echo "k3s API server is ready."
+          fi
+
       # ── Build images ──────────────────────────────────────────────
       - name: Build platformer image
         run: docker build -t dbct-game-client:${{ github.sha }} ./client
