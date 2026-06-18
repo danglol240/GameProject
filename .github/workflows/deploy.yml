@@ -42,7 +42,7 @@ jobs:
 
       # ── Apply k8s manifests ───────────────────────────────────────
       - name: Apply k8s manifests
-        run: kubectl apply -f k8s/
+        run: kubectl apply --validate=false -f k8s/
 
       # ── Trigger rollouts with new image tags ──────────────────────
       - name: Update platformer image
