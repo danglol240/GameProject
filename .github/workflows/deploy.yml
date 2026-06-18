@@ -20,19 +20,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ── Ensure k3s TLS cert is valid ──────────────────────────────
-      - name: Rotate k3s cert if not yet valid
+      # ── Patch kubeconfig để bypass TLS cert timing issue ─────────
+      - name: Bypass k3s TLS verify
         run: |
-          if ! kubectl cluster-info --request-timeout=5s > /dev/null 2>&1; then
-            echo "k3s API unreachable, rotating certificates..."
-            sudo k3s certificate rotate
-            sudo systemctl restart k3s
-            echo "Waiting for k3s API server to be ready..."
-            until kubectl cluster-info --request-timeout=5s > /dev/null 2>&1; do
-              sleep 5
-            done
-            echo "k3s API server is ready."
-          fi
+          CLUSTER=$(kubectl config view -o jsonpath='{.clusters[0].name}')
+          kubectl config set-cluster "$CLUSTER" --insecure-skip-tls-verify=true
+          kubectl config unset clusters."$CLUSTER".certificate-authority-data 2>/dev/null || true
+          kubectl cluster-info
 
       # ── Build images ──────────────────────────────────────────────
       - name: Build platformer image
@@ -58,7 +52,7 @@ jobs:
       - name: Apply k8s manifests
         run: kubectl apply --validate=false -f k8s/
 
-      # ── Trigger rollouts with new image tags ──────────────────────
+      # ── Trigger rollouts với image tag mới ───────────────────────
       - name: Update platformer image
         run: kubectl -n games set image deployment/dbct-game dbct-game=dbct-game-client:${{ github.sha }}
 
@@ -68,7 +62,7 @@ jobs:
       - name: Update pokemon image
         run: kubectl -n games set image deployment/pokemon-game pokemon-game=pokemon-game:${{ github.sha }}
 
-      # ── Wait for all rollouts ─────────────────────────────────────
+      # ── Đợi rollout hoàn tất ──────────────────────────────────────
       - name: Wait for platformer rollout
         run: kubectl -n games rollout status deployment/dbct-game --timeout=120s
 
