@@ -76,7 +76,7 @@
   }
   function applyTheme(t) { document.documentElement.dataset.theme = t; }
   function initTheme() {
-    const t = storedTheme() || (window.matchMedia && matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+    const t = storedTheme() || 'light';
     applyTheme(t);
   }
   function themeButton() {
@@ -112,12 +112,12 @@
     return h('div', { class: 'bar' }, h('i', { class: pct >= 90 ? 'crit' : pct >= 75 ? 'warn' : '', style: `width:${pct}%` }));
   }
 
-  function ring(used, max, label, fmt) {
+  function ring(used, max, label, fmt, tone) {
     const unlimited = !(max > 0);
     const r = 34;
     const c = 2 * Math.PI * r;
     const pct = unlimited ? 0 : Math.min(used / max, 1);
-    const color = pct >= 0.9 ? 'var(--red)' : pct >= 0.75 ? 'var(--orange)' : 'var(--accent)';
+    const color = pct >= 0.9 ? 'var(--red)' : pct >= 0.75 ? 'var(--orange)' : `var(--c-${tone || 'blue'})`;
     const f = fmt || String;
     return h('div', { class: 'ring' },
       svg('svg', { viewBox: '0 0 84 84', width: 84, height: 84, role: 'img', 'aria-label': `${label}: ${unlimited ? 'không giới hạn' : `${Math.round(pct * 100)}%`}` },
@@ -318,6 +318,8 @@
   }
 
   // ── Shell ──────────────────────────────────────
+  const NAV_TONE = { overview: 'blue', instances: 'purple', volumes: 'teal', network: 'orange', images: 'pink' };
+
   const VIEWS = {
     overview: { title: 'Tổng quan', render: viewOverview },
     instances: { title: 'Máy ảo', render: viewInstances },
@@ -356,9 +358,9 @@
         h('nav', { class: 'nav', 'aria-label': 'Điều hướng chính' },
           h('div', { class: 'nav-label' }, 'Tài nguyên'),
           Object.entries(VIEWS).map(([key, v]) =>
-            h('a', { href: `#/${key}`, class: key === active ? 'active' : '', 'aria-current': key === active ? 'page' : null }, icon(key), v.title)),
+            h('a', { href: `#/${key}`, class: `c-${NAV_TONE[key]} ${key === active ? 'active' : ''}`, 'aria-current': key === active ? 'page' : null }, icon(key), v.title)),
           h('div', { class: 'nav-label ext-label' }, 'Quản trị'),
-          h('a', { href: HORIZON, target: '_blank', rel: 'noopener', class: 'ext' }, icon('admin'), 'Horizon'))),
+          h('a', { href: HORIZON, target: '_blank', rel: 'noopener', class: 'ext c-green' }, icon('admin'), 'Horizon'))),
       h('div', { class: 'main' },
         h('header', { class: 'topbar' },
           h('div', { class: 'crumb' }, 'Project', projectSwitch),
@@ -423,17 +425,17 @@
     const hv = hyper?.hypervisors || [];
     const pl = pools?.pools || [];
 
-    const stat = (ic, value, small, label) => h('div', { class: 'card stat' },
+    const stat = (ic, value, small, label, tone) => h('div', { class: `card stat c-${tone}` },
       h('div', { class: 'stat-top' }, h('div', { class: 'chip-icon' }, icon(ic))),
       h('div', { class: 'value' }, value, small && h('small', {}, ` ${small}`)),
       h('div', { class: 'label' }, label));
 
     const stats = h('div', { class: 'grid stats' },
-      stat('instances', active, `/ ${list.length}`, 'Máy ảo đang chạy'),
-      stat('cpu', nl.totalCoresUsed ?? '—', nl.maxTotalCores > 0 ? `/ ${nl.maxTotalCores}` : '', 'vCPU đang dùng'),
-      stat('ram', nl.totalRAMUsed != null ? mb(nl.totalRAMUsed) : '—', '', 'RAM đang dùng'),
-      stat('volumes', cl.totalVolumesUsed ?? '—', cl.totalGigabytesUsed != null ? `· ${gb(cl.totalGigabytesUsed)}` : '', 'Ổ đĩa'),
-      stat('ip', fips ? (fips.floatingips || []).length : '—', '', 'Floating IP'));
+      stat('instances', active, `/ ${list.length}`, 'Máy ảo đang chạy', 'blue'),
+      stat('cpu', nl.totalCoresUsed ?? '—', nl.maxTotalCores > 0 ? `/ ${nl.maxTotalCores}` : '', 'vCPU đang dùng', 'purple'),
+      stat('ram', nl.totalRAMUsed != null ? mb(nl.totalRAMUsed) : '—', '', 'RAM đang dùng', 'teal'),
+      stat('volumes', cl.totalVolumesUsed ?? '—', cl.totalGigabytesUsed != null ? `· ${gb(cl.totalGigabytesUsed)}` : '', 'Ổ đĩa', 'orange'),
+      stat('ip', fips ? (fips.floatingips || []).length : '—', '', 'Floating IP', 'pink'));
 
     const sections = [];
 
@@ -451,10 +453,10 @@
     const quota = h('div', { class: 'card' }, h('div', { class: 'card-head' }, h('h2', {}, `Hạn mức · ${session.project.name}`)),
       nova || cinder
         ? h('div', { class: 'rings' },
-          ring(nl.totalInstancesUsed ?? 0, nl.maxTotalInstances, 'Máy ảo'),
-          ring(nl.totalCoresUsed ?? 0, nl.maxTotalCores, 'vCPU'),
-          ring(nl.totalRAMUsed ?? 0, nl.maxTotalRAMSize, 'RAM', mb),
-          ring(cl.totalGigabytesUsed ?? 0, cl.maxTotalVolumeGigabytes, 'Ổ đĩa', gb))
+          ring(nl.totalInstancesUsed ?? 0, nl.maxTotalInstances, 'Máy ảo', null, 'blue'),
+          ring(nl.totalCoresUsed ?? 0, nl.maxTotalCores, 'vCPU', null, 'purple'),
+          ring(nl.totalRAMUsed ?? 0, nl.maxTotalRAMSize, 'RAM', mb, 'teal'),
+          ring(cl.totalGigabytesUsed ?? 0, cl.maxTotalVolumeGigabytes, 'Ổ đĩa', gb, 'orange'))
         : h('div', { class: 'empty' }, 'Không đọc được hạn mức.'));
 
     const recent = h('div', { class: 'card' },
@@ -485,17 +487,17 @@
     }
 
     const links = [
-      ['instances', 'Máy ảo', 'Tạo máy ảo mới, mở console', '/project/instances/'],
-      ['network', 'Mạng', 'Network, router, security group', '/project/networks/'],
-      ['volumes', 'Ổ đĩa', 'Volume, snapshot, backup', '/project/volumes/'],
-      ['lb', 'Cân bằng tải', 'Load balancer (Octavia)', '/project/load_balancer/'],
-      ['stack', 'Orchestration', 'Stack Heat', '/project/stacks/'],
+      ['instances', 'Máy ảo', 'Tạo máy ảo mới, mở console', '/project/instances/', 'purple'],
+      ['network', 'Mạng', 'Network, router, security group', '/project/networks/', 'orange'],
+      ['volumes', 'Ổ đĩa', 'Volume, snapshot, backup', '/project/volumes/', 'teal'],
+      ['lb', 'Cân bằng tải', 'Load balancer (Octavia)', '/project/load_balancer/', 'pink'],
+      ['stack', 'Orchestration', 'Stack Heat', '/project/stacks/', 'blue'],
     ];
-    if (isAdmin()) links.push(['admin', 'Quản trị hệ thống', 'Toàn bộ project, người dùng, hạ tầng', '/admin/']);
+    if (isAdmin()) links.push(['admin', 'Quản trị hệ thống', 'Toàn bộ project, người dùng, hạ tầng', '/admin/', 'yellow']);
 
     sections.push(h('div', { class: 'section' }, h('div', { class: 'card' }, h('div', { class: 'card-head' }, h('h2', {}, 'Tính năng nâng cao trong Horizon')),
-      h('div', { class: 'grid services' }, links.map(([ic, t, d, href]) =>
-        h('a', { class: `service ${href === '/admin/' ? 'admin' : ''}`, href, target: '_blank', rel: 'noopener' },
+      h('div', { class: 'grid services' }, links.map(([ic, t, d, href, tone]) =>
+        h('a', { class: `service c-${tone} ${href === '/admin/' ? 'admin' : ''}`, href, target: '_blank', rel: 'noopener' },
           h('div', { class: 'chip-icon' }, icon(ic)), h('div', {}, h('b', {}, `${t} ↗`), h('span', { class: 'd' }, d))))),
       h('p', { class: 'muted', style: 'margin-top:12px;font-size:12px' }, 'Horizon dùng phiên đăng nhập riêng, bạn sẽ cần đăng nhập lại ở đó.'))));
 

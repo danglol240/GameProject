@@ -20,28 +20,35 @@
   --shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 18px 40px rgba(0, 0, 0, 0.35);
   --radius: 14px;
   --radius-sm: 10px;
+  --c-blue: #5aa9ff; --c-purple: #a58bff; --c-teal: #3fd8c6; --c-orange: #ff9a5c;
+  --c-pink: #ff7fb0; --c-green: #43d98a; --c-yellow: #ffcf5c;
+  --grad: linear-gradient(135deg, #3d86ff, #8a5cff);
   color-scheme: dark;
 }
 
 :root[data-theme="light"] {
-  --bg: #f3f5fb;
-  --bg-glow: radial-gradient(1000px 480px at 10% -10%, #dfe8ff 0%, transparent 60%),
-             radial-gradient(800px 420px at 100% 0%, #e9f0ff 0%, transparent 55%);
+  --bg: #f2f6ff;
+  --bg-glow: radial-gradient(900px 480px at 6% -10%, #cfe0ff 0%, transparent 62%),
+             radial-gradient(800px 420px at 100% 0%, #ffd9ea 0%, transparent 58%),
+             radial-gradient(760px 420px at 62% 112%, #d4f6ee 0%, transparent 62%);
   --surface: #ffffff;
-  --surface-2: #eef2fa;
-  --sidebar: rgba(255, 255, 255, 0.82);
-  --topbar: rgba(243, 245, 251, 0.85);
-  --border: #dde3f0;
-  --text: #121a33;
-  --muted: #56627f;
-  --accent: #1f6fe5;
+  --surface-2: #eef3ff;
+  --sidebar: rgba(255, 255, 255, 0.86);
+  --topbar: rgba(255, 255, 255, 0.78);
+  --border: #dfe7fa;
+  --text: #14203f;
+  --muted: #56658a;
+  --accent: #2f6bff;
   --accent-ink: #ffffff;
-  --accent-soft: rgba(31, 111, 229, 0.1);
-  --green: #12975a;
-  --yellow: #b27b00;
-  --orange: #d8561f;
-  --red: #d7324a;
-  --shadow: 0 1px 2px rgba(18, 26, 51, 0.06), 0 10px 28px rgba(18, 26, 51, 0.07);
+  --accent-soft: rgba(47, 107, 255, 0.11);
+  --green: #12a96a;
+  --yellow: #c98a00;
+  --orange: #ee6a1c;
+  --red: #e0334b;
+  --c-blue: #2f6bff; --c-purple: #8a5cff; --c-teal: #0fb5a4; --c-orange: #ff7a2f;
+  --c-pink: #ff4f93; --c-green: #17b26a; --c-yellow: #f5b301;
+  --grad: linear-gradient(135deg, #2f6bff, #7a5cff);
+  --shadow: 0 1px 2px rgba(40, 60, 120, 0.06), 0 12px 30px rgba(40, 60, 120, 0.09);
   color-scheme: light;
 }
 
@@ -296,3 +303,54 @@ td.mono, .mono { font-variant-numeric: tabular-nums; }
   .page-head h1 { font-size: 24px; }
   .toast { bottom: 82px; right: 14px; }
 }
+
+/* ── Colour accents (vibrant layer) ────────────── */
+.c-blue { --c: var(--c-blue); }
+.c-purple { --c: var(--c-purple); }
+.c-teal { --c: var(--c-teal); }
+.c-orange { --c: var(--c-orange); }
+.c-pink { --c: var(--c-pink); }
+.c-green { --c: var(--c-green); }
+.c-yellow { --c: var(--c-yellow); }
+
+.btn.primary { background: var(--grad); border-color: transparent; color: #fff; box-shadow: 0 6px 16px color-mix(in srgb, var(--c-blue) 32%, transparent); }
+.btn.primary:hover { filter: brightness(1.07); }
+
+.nav a svg { color: var(--c, var(--accent)); }
+.nav a.active { background: color-mix(in srgb, var(--c, var(--accent)) 14%, transparent); }
+.nav a.active::before { background: var(--c, var(--accent)); }
+.nav a:hover { background: color-mix(in srgb, var(--c, var(--accent)) 9%, transparent); }
+
+.avatar { background: var(--grad); color: #fff; }
+
+.card.stat { border-top: 3px solid var(--c, var(--accent)); background: linear-gradient(180deg, color-mix(in srgb, var(--c, var(--accent)) 8%, var(--surface)), var(--surface) 70%); }
+.stat .chip-icon, .service .chip-icon, .feature-list .dot { background: color-mix(in srgb, var(--c, var(--accent)) 17%, transparent); color: var(--c, var(--accent)); }
+.service:hover { border-color: var(--c, var(--accent)); }
+.service.admin .chip-icon { background: color-mix(in srgb, var(--c-yellow) 20%, transparent); color: var(--c-yellow); }
+.stat .value { color: color-mix(in srgb, var(--c, var(--text)) 35%, var(--text)); }
+
+.bar > i { background: linear-gradient(90deg, var(--c-blue), var(--c-purple)); }
+.bar > i.warn { background: linear-gradient(90deg, var(--c-yellow), var(--c-orange)); }
+.bar > i.crit { background: linear-gradient(90deg, var(--c-orange), var(--red)); }
+
+th { background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.fchip.on { background: var(--grad); border-color: transparent; color: #fff; }
+.fchip.on b { color: #fff; }
+.pill { background: color-mix(in srgb, var(--green) 9%, var(--surface)); }
+.pill.warn { background: color-mix(in srgb, var(--yellow) 10%, var(--surface)); }
+.pill.bad { background: color-mix(in srgb, var(--red) 10%, var(--surface)); }
+
+.card h2 { color: color-mix(in srgb, var(--accent) 45%, var(--muted)); }
+.page-head h1 { background: linear-gradient(100deg, var(--text) 30%, color-mix(in srgb, var(--c-purple) 70%, var(--text))); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+/* Login: vivid hero in light mode */
+:root[data-theme="light"] .login-hero {
+  background: linear-gradient(135deg, #2f6bff 0%, #7a5cff 52%, #ff4f93 100%);
+  border-right: 0; color: #fff;
+}
+:root[data-theme="light"] .login-hero .lead,
+:root[data-theme="light"] .login-hero .feature-list span,
+:root[data-theme="light"] .login-hero .login-foot { color: rgba(255, 255, 255, 0.88); }
+:root[data-theme="light"] .login-hero .feature-list .dot { background: rgba(255, 255, 255, 0.22); color: #fff; }
+:root[data-theme="light"] .login-hero .brand { color: #fff; }
+:root[data-theme="light"] .login-hero .brand svg { filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25)); }
