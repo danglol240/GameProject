@@ -78,7 +78,8 @@
     padding: 7px 14px 8px 12px; border: 0; border-radius: 14px; background: #fff; color: #14203f;
     font: inherit; text-decoration: none; white-space: nowrap;
     box-shadow: 0 8px 22px rgba(60, 30, 20, 0.3);
-    transition: scale 0.18s, box-shadow 0.18s, background 0.18s;
+    transition: scale 0.18s, box-shadow 0.18s, background 0.18s, opacity 0.15s;
+    opacity: 0; pointer-events: none;
   }
   .tag::after {
     content: ''; position: absolute; left: 50%; bottom: -6px; width: 12px; height: 12px; background: inherit;
@@ -89,7 +90,7 @@
   .tag .pin { position: relative; width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
   .tag .pin::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--c); opacity: 0; animation: ping 2s ease-out infinite; }
   @keyframes ping { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(1.7); opacity: 0; } }
-  .tag.on, .tag:focus-visible { scale: 1.1; z-index: 3; box-shadow: 0 14px 34px color-mix(in srgb, var(--c) 45%, rgba(60, 30, 20, 0.3)); }
+  .tag.on, .tag:focus-visible { opacity: 1; pointer-events: auto; scale: 1.1; z-index: 3; box-shadow: 0 14px 34px color-mix(in srgb, var(--c) 45%, rgba(60, 30, 20, 0.3)); }
   .tag.on i, .tag:focus-visible i { display: block; }
   .tag:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
   .bubble {
