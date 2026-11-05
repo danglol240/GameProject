@@ -29,3 +29,24 @@ services:
     image: pokemon-game:latest
     container_name: pokemon-game
     restart: unless-stopped
+
+  horizon-tunnel:
+    build:
+      context: ./horizon-tunnel
+    image: horizon-tunnel:latest
+    container_name: horizon-tunnel
+    command: >
+      ssh -N -g
+      -i /run/secrets/horizon_key
+      -o UserKnownHostsFile=/run/secrets/horizon_known_hosts
+      -o IdentitiesOnly=yes
+      -o BatchMode=yes
+      -o ExitOnForwardFailure=yes
+      -o ServerAliveInterval=30
+      -o ServerAliveCountMax=3
+      -L 0.0.0.0:8081:192.168.1.61:80
+      root@171.237.178.58
+    volumes:
+      - ${HOME}/.ssh/horizon_tunnel:/run/secrets/horizon_key:ro
+      - ${HOME}/.ssh/horizon_tunnel_known_hosts:/run/secrets/horizon_known_hosts:ro
+    restart: unless-stopped
