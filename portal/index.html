@@ -22,14 +22,98 @@
   }
 
   html, body {
-    width: 100%; min-height: 100%; overflow-x: hidden;
+    width: 100%; min-height: 100%;
     background: var(--bg);
     color: var(--text);
     font-family: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
   }
+  body.room-mode { overflow: hidden; height: 100vh; }
+  body.list-mode { overflow-x: hidden; }
 
-  /* ── BACKGROUND BLOBS ── */
+  button { font: inherit; color: inherit; }
+
+  /* ═════════ 3D ROOM MODE ═════════ */
+  .bg { position: fixed; inset: 0; z-index: 0; transition: opacity 0.7s; }
+  .bg-day { background: radial-gradient(ellipse at 50% 36%, #f7dfcd 0%, #e6bfa6 55%, #cfa088 100%); }
+  .bg-night { background: radial-gradient(ellipse at 50% 36%, #4a3f6e 0%, #29244a 60%, #17132b 100%); opacity: 0; }
+  body.night .bg-night { opacity: 1; }
+  body.list-mode .bg { display: none; }
+
+  #stage { position: fixed; inset: 0; z-index: 1; }
+  #stage canvas { display: block; width: 100%; height: 100%; touch-action: manipulation; }
+  #tags { position: fixed; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+  body.list-mode #stage, body.list-mode #tags, body.list-mode .hud, body.list-mode .hint { display: none; }
+  body.room-mode #list { display: none; }
+
+  .hud { position: fixed; top: 0; left: 0; right: 0; z-index: 8; display: flex; justify-content: space-between; align-items: center; padding: 18px 26px; pointer-events: none; }
+  .hud > * { pointer-events: auto; }
+  .hud .logo {
+    font-size: 1.35rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
+    background: linear-gradient(90deg, #2f6bff, #8a5cff 55%, #ff4f93);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter: drop-shadow(0 2px 6px rgba(255, 255, 255, 0.5));
+  }
+  .hud-actions { display: flex; gap: 10px; }
+  .pill-btn {
+    padding: 9px 16px; border-radius: 99px; border: 1px solid rgba(255, 255, 255, 0.6); cursor: pointer;
+    background: rgba(255, 255, 255, 0.72); backdrop-filter: blur(10px); color: #14203f;
+    font-weight: 700; font-size: 0.82rem; letter-spacing: 0.03em;
+    box-shadow: 0 6px 18px rgba(80, 40, 20, 0.15); transition: transform 0.15s, background 0.15s;
+  }
+  .pill-btn:hover { transform: translateY(-2px); background: #fff; }
+
+  .hint {
+    position: fixed; z-index: 8; left: 50%; bottom: 24px; transform: translateX(-50%);
+    padding: 10px 20px; border-radius: 99px; background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(10px);
+    color: #14203f; font-weight: 600; font-size: 0.9rem; box-shadow: 0 8px 22px rgba(80, 40, 20, 0.18);
+    transition: opacity 0.6s, transform 0.6s; pointer-events: none; white-space: nowrap;
+  }
+  .hint.gone { opacity: 0; transform: translateX(-50%) translateY(10px); }
+
+  /* floating labels over the objects (real links: keyboard and screen-reader friendly) */
+  .tag {
+    --c: #2f6bff;
+    position: absolute; left: 0; top: 0; pointer-events: auto; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 1px;
+    padding: 7px 14px 8px 12px; border: 0; border-radius: 14px; background: #fff; color: #14203f;
+    font: inherit; text-decoration: none; white-space: nowrap;
+    box-shadow: 0 8px 22px rgba(60, 30, 20, 0.3);
+    transition: scale 0.18s, box-shadow 0.18s, background 0.18s;
+  }
+  .tag::after {
+    content: ''; position: absolute; left: 50%; bottom: -6px; width: 12px; height: 12px; background: inherit;
+    transform: translateX(-50%) rotate(45deg); border-radius: 0 0 3px 0;
+  }
+  .tag b { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 800; }
+  .tag i { display: none; font-style: normal; font-size: 0.72rem; font-weight: 600; color: #5b6988; }
+  .tag .pin { position: relative; width: 10px; height: 10px; border-radius: 50%; background: var(--c); flex: none; }
+  .tag .pin::after { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--c); opacity: 0; animation: ping 2s ease-out infinite; }
+  @keyframes ping { 0% { transform: scale(0.6); opacity: 0.9; } 100% { transform: scale(1.7); opacity: 0; } }
+  .tag.on, .tag:focus-visible { scale: 1.1; z-index: 3; box-shadow: 0 14px 34px color-mix(in srgb, var(--c) 45%, rgba(60, 30, 20, 0.3)); }
+  .tag.on i, .tag:focus-visible i { display: block; }
+  .tag:focus-visible { outline: 3px solid var(--c); outline-offset: 2px; }
+  .bubble {
+    position: absolute; bottom: calc(100% + 14px); left: 50%; transform: translateX(-50%);
+    padding: 6px 14px; border-radius: 14px; background: #ff4f93; color: #fff; font-weight: 800; font-size: 0.9rem;
+    animation: pop 0.3s ease-out;
+  }
+  @keyframes pop { from { transform: translateX(-50%) scale(0.4); opacity: 0; } to { transform: translateX(-50%) scale(1); opacity: 1; } }
+
+  #fade { position: fixed; inset: 0; z-index: 50; background: #fff6ec; opacity: 0; pointer-events: none; transition: opacity 0.55s ease-in; }
+  #fade.on { opacity: 1; pointer-events: auto; }
+
+  @media (max-width: 640px) {
+    .hud { padding: 12px 14px; }
+    .hud .logo { font-size: 1.05rem; }
+    .pill-btn { padding: 7px 12px; font-size: 0.74rem; }
+    .tag { padding: 5px 10px 6px 9px; }
+    .tag b { font-size: 0.74rem; }
+    .hint { font-size: 0.78rem; bottom: 14px; }
+  }
+
+  /* ═════════ LIST MODE (fallback, also reachable by the button) ═════════ */
   .blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+  body.room-mode .blobs { display: none; }
   .blobs i { position: absolute; border-radius: 50%; filter: blur(70px); opacity: 0.55; animation: drift 18s ease-in-out infinite; }
   .blobs i:nth-child(1) { width: 520px; height: 520px; background: #8fc2ff; top: -140px; left: -120px; }
   .blobs i:nth-child(2) { width: 460px; height: 460px; background: #ffb3d1; top: 10%; right: -140px; animation-delay: -6s; }
@@ -37,33 +121,23 @@
   .blobs i:nth-child(4) { width: 340px; height: 340px; background: #9ff0e0; bottom: 8%; right: 10%; animation-delay: -3s; }
   @keyframes drift { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(40px,-30px) scale(1.08); } }
 
-  /* ── LAYOUT ── */
   .page { position: relative; z-index: 1; min-height: 100vh; display: flex; flex-direction: column; }
 
-  /* ── HEADER ── */
   header {
     display: flex; align-items: center; justify-content: space-between;
-    padding: 1.1rem 3rem;
-    border-bottom: 1px solid var(--border);
-    backdrop-filter: blur(14px);
-    background: rgba(255,255,255,0.72);
+    padding: 1.1rem 3rem; border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(14px); background: rgba(255,255,255,0.72);
     position: sticky; top: 0; z-index: 10;
   }
-
   .logo {
     font-size: 1.45rem; font-weight: 900; letter-spacing: 0.1em; text-transform: uppercase;
     background: linear-gradient(90deg, var(--blue), var(--purple) 55%, var(--pink));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-
   nav { display: flex; gap: 1.8rem; }
-  nav a {
-    color: var(--muted); text-decoration: none; font-size: 0.88rem; font-weight: 600;
-    letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s;
-  }
+  nav a { color: var(--muted); text-decoration: none; font-size: 0.88rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; transition: color 0.2s; }
   nav a:hover { color: var(--blue); }
 
-  /* ── HERO ── */
   .hero { text-align: center; padding: 4.5rem 2rem 3rem; }
   .hero-eyebrow {
     display: inline-block; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase;
@@ -75,17 +149,20 @@
     background: linear-gradient(100deg, var(--blue) 10%, var(--purple) 50%, var(--pink) 90%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-  .hero p {
-    margin: 1.1rem auto 0; max-width: 520px; color: var(--muted); font-size: 1.08rem; line-height: 1.7;
+  .hero p { margin: 1.1rem auto 0; max-width: 520px; color: var(--muted); font-size: 1.08rem; line-height: 1.7; }
+  .btn-room {
+    margin-top: 1.6rem; padding: 0.8rem 1.8rem; border: 0; border-radius: 99px; cursor: pointer;
+    font-weight: 800; letter-spacing: 0.04em; color: #fff;
+    background: linear-gradient(135deg, var(--teal), var(--blue) 55%, var(--purple));
+    box-shadow: 0 10px 26px rgba(47,107,255,0.35); transition: transform 0.2s;
   }
+  .btn-room:hover { transform: scale(1.05); }
+  .btn-room[hidden] { display: none; }
 
-  /* ── GRID ── */
   .games-grid {
     display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.8rem;
     padding: 1rem 3rem 5rem; max-width: 1100px; margin-inline: auto; width: 100%;
   }
-
-  /* ── CARD ── */
   .card {
     --c: var(--blue);
     background: var(--card); border: 1px solid var(--border); border-radius: 22px; overflow: hidden;
@@ -97,23 +174,15 @@
   .card.teal { --c: var(--teal); }
   .card:hover { transform: translateY(-8px); border-color: var(--c); box-shadow: 0 22px 50px color-mix(in srgb, var(--c) 28%, transparent); }
 
-  /* ── CARD PREVIEW ── */
   .card-preview { width: 100%; height: 190px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-
-  .sun {
-    position: absolute; width: 56px; height: 56px; border-radius: 50%; top: 16px; right: 34px;
-    background: radial-gradient(circle at 35% 35%, #fff7b0, #ffc233);
-    box-shadow: 0 0 36px rgba(255,194,51,0.8); animation: bob 4s ease-in-out infinite;
-  }
+  .sun { position: absolute; width: 56px; height: 56px; border-radius: 50%; top: 16px; right: 34px; background: radial-gradient(circle at 35% 35%, #fff7b0, #ffc233); box-shadow: 0 0 36px rgba(255,194,51,0.8); animation: bob 4s ease-in-out infinite; }
   @keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-
   .puff { position: absolute; height: 22px; border-radius: 99px; background: #fff; opacity: 0.95; animation: slide 14s linear infinite; }
   .puff::before, .puff::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
   .puff::before { width: 26px; height: 26px; top: -13px; left: 14px; }
   .puff::after { width: 34px; height: 34px; top: -18px; left: 36px; }
   @keyframes slide { from { transform: translateX(-30px); } to { transform: translateX(40px); } }
 
-  /* Platformer preview */
   .preview-platformer { background: linear-gradient(180deg, #5cc0ff 0%, #a8e4ff 60%, #d8f6ff 100%); }
   .preview-platformer .plat-ground { position: absolute; bottom: 0; left: 0; right: 0; height: 34px; background: #3fcf62; border-top: 4px solid #2bb04d; }
   .preview-platformer .plat-platform { position: absolute; height: 13px; border-radius: 5px; background: #6fe08b; border-top: 3px solid #34b956; }
@@ -121,14 +190,9 @@
   .preview-platformer .plat-player::before { content: ''; position: absolute; top: -14px; left: 4px; width: 16px; height: 14px; border-radius: 50%; background: #ffcc99; }
   @keyframes jump { 0%,100% { transform: translateY(0); } 35%,65% { transform: translateY(-40px); } }
 
-  /* Pokemon preview */
   .preview-pokemon { background: linear-gradient(180deg, #7ad2ff 0%, #c4efff 62%, #e6fbff 100%); }
   .preview-pokemon .poke-grass { position: absolute; bottom: 0; left: 0; right: 0; height: 42px; background: linear-gradient(180deg, #5fe070, #3fc457); border-top: 4px solid #2eb04a; }
-  .preview-pokemon .poke-ball {
-    position: absolute; width: 44px; height: 44px; border-radius: 50%;
-    background: linear-gradient(180deg, #ff4b4b 50%, #fff 50%); border: 3px solid #222;
-    animation: float 2.5s ease-in-out infinite; box-shadow: 0 8px 18px rgba(0,0,0,0.25);
-  }
+  .preview-pokemon .poke-ball { position: absolute; width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(180deg, #ff4b4b 50%, #fff 50%); border: 3px solid #222; animation: float 2.5s ease-in-out infinite; box-shadow: 0 8px 18px rgba(0,0,0,0.25); }
   .preview-pokemon .poke-ball::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid #222; z-index: 1; }
   .preview-pokemon .poke-ball::after { content: ''; position: absolute; top: calc(50% - 1.5px); left: 0; right: 0; height: 3px; background: #222; }
   @keyframes float { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-14px) rotate(5deg); } }
@@ -137,7 +201,6 @@
   .preview-pokemon .poke-star { position: absolute; border-radius: 50%; background: #fff; animation: sparkle 1.5s ease-in-out infinite; }
   @keyframes sparkle { 0%,100% { transform: scale(1); opacity: 0.95; } 50% { transform: scale(1.7); opacity: 0.4; } }
 
-  /* Cloud preview */
   .preview-cloud { background: linear-gradient(135deg, #14c9b5 0%, #2f6bff 55%, #8a5cff 100%); }
   .preview-cloud .cloud { position: absolute; left: 50%; top: 50%; width: 150px; height: 54px; transform: translate(-50%, -50%); border-radius: 99px; background: #fff; box-shadow: 0 14px 30px rgba(20,32,63,0.25); animation: bob 4s ease-in-out infinite; }
   .preview-cloud .cloud::before, .preview-cloud .cloud::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
@@ -146,19 +209,13 @@
   .preview-cloud .node { position: absolute; width: 18px; height: 18px; border-radius: 5px; background: rgba(255,255,255,0.9); animation: sparkle 2s ease-in-out infinite; }
   .preview-cloud .label { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); padding: 3px 12px; border-radius: 99px; background: rgba(255,255,255,0.22); color: #fff; font-weight: 700; font-size: 12px; letter-spacing: 0.08em; }
 
-  /* ── CARD BODY ── */
   .card-body { padding: 1.4rem 1.6rem 1.7rem; display: flex; flex-direction: column; flex: 1; }
-
   .genre-tag { display: inline-block; align-self: flex-start; font-size: 0.66rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.28rem 0.8rem; border-radius: 99px; margin-bottom: 0.8rem; background: color-mix(in srgb, var(--c) 14%, #fff); color: var(--c); }
-
   .card-body h2 { font-size: 1.35rem; font-weight: 800; margin-bottom: 0.55rem; }
   .card-body p { color: var(--muted); font-size: 0.9rem; line-height: 1.65; flex: 1; }
-
   .card-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 1.4rem; gap: 10px; }
-
   .players-badge { display: flex; align-items: center; gap: 0.45rem; font-size: 0.78rem; font-weight: 600; color: var(--muted); }
   .players-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
-
   .btn-play {
     display: inline-block; text-decoration: none; padding: 0.65rem 1.4rem; border-radius: 12px;
     font-size: 0.8rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
@@ -168,7 +225,6 @@
   }
   .btn-play:hover { transform: scale(1.06); box-shadow: 0 10px 26px color-mix(in srgb, var(--c) 55%, transparent); }
 
-  /* ── FOOTER ── */
   footer {
     margin-top: auto; padding: 1.8rem 3rem; border-top: 1px solid var(--border);
     background: rgba(255,255,255,0.7); backdrop-filter: blur(10px);
@@ -190,11 +246,32 @@
   }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
+<noscript><style>
+  #list { display: block !important; }
+  #stage, #tags, .hud, .hint, .bg { display: none !important; }
+  body { overflow: auto !important; height: auto !important; }
+</style></noscript>
 </head>
-<body>
-<div class="blobs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<body class="room-mode">
 
-<div class="page">
+<!-- 3D room -->
+<div class="bg bg-day"></div>
+<div class="bg bg-night"></div>
+<div id="stage"></div>
+<div id="tags" role="navigation" aria-label="Các trang trong phòng"></div>
+<div class="hud">
+  <span class="logo">Game Studio</span>
+  <div class="hud-actions">
+    <button class="pill-btn" id="btn-night" type="button">Ban đêm</button>
+    <button class="pill-btn" id="btn-list" type="button">Dạng danh sách</button>
+  </div>
+</div>
+<div class="hint" id="hint">Bấm vào đồ vật trong phòng để vào từng trang</div>
+<div id="fade"></div>
+
+<!-- List view -->
+<div class="blobs" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+<main class="page" id="list">
   <header>
     <span class="logo">Game Studio</span>
     <nav>
@@ -208,21 +285,19 @@
     <div class="hero-eyebrow">Indie Game Collection</div>
     <h1>Chào mừng tới<br/>Game Studio</h1>
     <p>Bộ sưu tập game độc lập xây dựng bằng Three.js &amp; Vite. Chọn game bên dưới và bắt đầu cuộc phiêu lưu!</p>
+    <button class="btn-room" id="btn-room" type="button" hidden>Vào phòng 3D</button>
   </section>
 
   <div class="games-grid" id="games">
 
-    <!-- Card 1: Platformer -->
     <div class="card">
       <div class="card-preview preview-platformer">
         <div class="sun"></div>
         <div class="puff" style="width:70px;top:26px;left:12%"></div>
         <div class="puff" style="width:56px;top:62px;left:48%;animation-delay:-5s"></div>
-        <!-- platforms -->
         <div class="plat-platform" style="width:70px;bottom:62px;left:20px;"></div>
         <div class="plat-platform" style="width:55px;bottom:92px;left:110px;"></div>
         <div class="plat-platform" style="width:65px;bottom:72px;right:30px;"></div>
-        <!-- player -->
         <div class="plat-player" style="left:28px;"></div>
         <div class="plat-ground"></div>
       </div>
@@ -231,16 +306,12 @@
         <h2>Đôi Bạn Cùng Tiến</h2>
         <p>Hai người chơi hợp tác vượt qua những màn chướng ngại vật đầy thử thách. Nhảy, chạy và phối hợp để chinh phục từng cấp độ!</p>
         <div class="card-footer">
-          <div class="players-badge">
-            <div class="dot"></div>
-            1–2 Người chơi
-          </div>
+          <div class="players-badge"><div class="dot"></div>1–2 Người chơi</div>
           <a href="/platformer/" class="btn-play">CHƠI NGAY</a>
         </div>
       </div>
     </div>
 
-    <!-- Card 2: Pokemon -->
     <div class="card orange">
       <div class="card-preview preview-pokemon">
         <div class="sun"></div>
@@ -248,9 +319,7 @@
         <div class="poke-star" style="width:5px;height:5px;top:42%;left:30%;animation-delay:0.5s"></div>
         <div class="poke-star" style="width:6px;height:6px;top:35%;left:68%;animation-delay:1s"></div>
         <div class="poke-star" style="width:4px;height:4px;top:50%;left:84%;animation-delay:0.3s"></div>
-        <!-- pokemon sprite -->
         <div class="poke-mon" style="background:radial-gradient(circle at 35% 35%,#eadcff,#8a5cff);box-shadow:0 6px 18px rgba(138,92,255,0.45);"></div>
-        <!-- trainer sprite -->
         <div style="position:absolute;bottom:42px;left:40px;width:36px;height:50px;">
           <div style="position:absolute;top:0;left:6px;width:24px;height:20px;background:#ffcc99;border-radius:50%;"></div>
           <div style="position:absolute;top:0;left:4px;width:28px;height:10px;background:#e53935;border-radius:4px 4px 0 0;"></div>
@@ -258,7 +327,6 @@
           <div style="position:absolute;top:36px;left:5px;width:10px;height:14px;background:#2a3ea8;border-radius:2px;"></div>
           <div style="position:absolute;top:36px;left:19px;width:10px;height:14px;background:#2a3ea8;border-radius:2px;"></div>
         </div>
-        <!-- pokeball -->
         <div class="poke-ball" style="left:44%;top:30%;"></div>
         <div class="poke-grass"></div>
       </div>
@@ -267,16 +335,12 @@
         <h2>Pokémon World</h2>
         <p>Khám phá thế giới 3D, bắt Pokémon hoang dã, chiến đấu turn-based và xây dựng Pokédex của riêng bạn. Cuộc phiêu lưu đích thực!</p>
         <div class="card-footer">
-          <div class="players-badge">
-            <div class="dot"></div>
-            1 Người chơi
-          </div>
+          <div class="players-badge"><div class="dot"></div>1 Người chơi</div>
           <a href="/pokemon/" class="btn-play">CHƠI NGAY</a>
         </div>
       </div>
     </div>
 
-    <!-- Card 3: Test Cloud -->
     <div class="card teal">
       <div class="card-preview preview-cloud">
         <div class="node" style="top:24px;left:16%"></div>
@@ -291,10 +355,7 @@
         <h2>Test Cloud</h2>
         <p>Quản lý máy ảo, ổ đĩa và mạng trên cụm OpenStack + Ceph. Trang quản trị nâng cao nằm trong Horizon.</p>
         <div class="card-footer">
-          <div class="players-badge">
-            <div class="dot"></div>
-            Cần đăng nhập
-          </div>
+          <div class="players-badge"><div class="dot"></div>Cần đăng nhập</div>
           <a href="/cloud/" class="btn-play">MỞ CLOUD</a>
         </div>
       </div>
@@ -312,6 +373,9 @@
       <span class="tech-badge">nginx</span>
     </div>
   </footer>
-</div>
+</main>
+
+<script src="vendor/three.min.js?v=149"></script>
+<script src="room.js?v=3"></script>
 </body>
 </html>
