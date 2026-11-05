@@ -30,6 +30,13 @@ services:
     container_name: pokemon-game
     restart: unless-stopped
 
+  cmp:
+    build:
+      context: ./cmp
+    image: cmp:latest
+    container_name: cmp
+    restart: unless-stopped
+
   horizon-tunnel:
     build:
       context: ./horizon-tunnel
@@ -45,6 +52,11 @@ services:
       -o ServerAliveInterval=30
       -o ServerAliveCountMax=3
       -L 0.0.0.0:8081:192.168.1.61:80
+      -L 0.0.0.0:8082:192.168.1.61:5000
+      -L 0.0.0.0:8083:192.168.1.61:8774
+      -L 0.0.0.0:8084:192.168.1.61:8776
+      -L 0.0.0.0:8085:192.168.1.61:9696
+      -L 0.0.0.0:8086:192.168.1.61:9292
       root@171.237.178.58
     volumes:
       - ${HOME}/.ssh/horizon_tunnel:/run/secrets/horizon_key:ro
