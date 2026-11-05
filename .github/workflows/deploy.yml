@@ -77,3 +77,19 @@ jobs:
 
       - name: Wait for pokemon rollout
         run: kubectl -n games rollout status deployment/pokemon-game --timeout=120s
+
+      # ── Don anh cu trong containerd cua k3s, tranh day dia theo thoi gian ──
+      # CHI xoa anh KHONG con duoc deployment nao tham chieu (tranh xoa nham
+      # ban dang chay nhu su co da gap truoc day)
+      - name: Prune old k3s images (keep in-use tags)
+        run: |
+          KEEP=$(kubectl -n games get deploy -o jsonpath='{range .items[*]}{.spec.template.spec.containers[0].image}{"\n"}{end}')
+          sudo /usr/local/bin/k3s ctr images ls -q \
+            | grep -E "^docker.io/library/(dbct-game-client|game-portal|pokemon-game):" \
+            | sed 's#^docker.io/library/##' \
+            | while read -r img; do
+                if ! grep -qxF "$img" <<< "$KEEP"; then
+                  echo "Removing unused image: $img"
+                  sudo /usr/local/bin/k3s ctr images rm "docker.io/library/$img" || true
+                fi
+              done
